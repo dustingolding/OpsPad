@@ -1,0 +1,32 @@
+[[permission]]
+identifier = "opspad-default"
+description = "Allows OpsPad core commands for the main window (MVP)."
+commands.allow = [
+  "hosts_list",
+  "hosts_create",
+  "hosts_delete",
+  "hosts_update",
+  "hosts_reorder",
+
+  "dock_commands_list",
+  "dock_commands_create",
+  "dock_commands_update",
+  "dock_commands_delete",
+  "dock_commands_reorder",
+  "dock_runbook_get",
+  "dock_runbook_set",
+  "dock_history_list",
+  "dock_history_delete",
+  "dock_history_clear",
+
+  "terminal_open_local",
+  "terminal_open_ssh",
+  "terminal_write",
+  "terminal_resize",
+  "terminal_close",
+  "terminal_mark_exited",
+
+  "vault_set_secret",
+  "vault_get_secret",
+  "vault_delete_secret",
+]
