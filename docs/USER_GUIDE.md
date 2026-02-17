@@ -20,7 +20,7 @@ The top-right badge shows the environment of the active tab:
 
 ### Local Terminal
 
-Local terminals run your default shell (Windows: PowerShell). Type commands as you would in a normal terminal.
+Local terminals run your default shell (Windows: PowerShell; macOS: your `$SHELL`, typically `zsh`). Type commands as you would in a normal terminal.
 
 ### SSH Sessions
 
@@ -82,7 +82,7 @@ The filter supports free-text search, plus simple `key:value` tokens:
 
 ## Credentials (OS Keyring)
 
-OpsPad stores secrets in the OS keyring (Windows Credential Manager for MVP). Secrets are not stored in SQLite.
+OpsPad stores secrets in the OS keyring (Windows Credential Manager / macOS Keychain). Secrets are not stored in SQLite.
 
 In the host editor, you can optionally store an SSH key passphrase:
 

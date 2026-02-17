@@ -1,0 +1,68 @@
+name: CI Build (macOS + Windows)
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        working-directory: opspad
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Vite 7 requires Node 20.19+ or 22.12+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: opspad/pnpm-lock.yaml
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            opspad/src-tauri -> opspad/src-tauri/target
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Tauri bundles
+        run: pnpm tauri build
+
+      - name: Upload bundles (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpsPad-windows-bundles
+          path: |
+            opspad/src-tauri/target/release/bundle/**
+
+      - name: Upload bundles (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpsPad-macos-bundles
+          path: |
+            opspad/src-tauri/target/release/bundle/**
+

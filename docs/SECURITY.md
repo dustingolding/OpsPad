@@ -28,7 +28,8 @@ Not stored in SQLite:
 
 OpsPad uses the OS keyring for secrets:
 
-- Windows MVP: Windows Credential Manager via Rust `keyring` crate.
+- Windows: Windows Credential Manager via Rust `keyring` crate.
+- macOS: Keychain via Rust `keyring` crate.
 
 Examples of key format:
 

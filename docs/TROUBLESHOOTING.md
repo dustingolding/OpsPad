@@ -97,3 +97,63 @@ Fix:
 Fix:
 
 - MSI upgrades are version-based. Ensure the app version was bumped and you’re installing the newest MSI.
+
+## Build / packaging issues (macOS)
+
+### `corepack` fails with EACCES when enabling pnpm
+
+Some macOS setups won’t allow creating shims under `/usr/local/bin` without elevated permissions.
+
+Fix (recommended): use the repo scripts or run pnpm via `npx`:
+
+```bash
+cd ./opspad
+./dev.sh
+./build.sh
+```
+
+Or:
+
+```bash
+cd ./opspad
+npx -y pnpm@9.15.4 install
+npx -y pnpm@9.15.4 tauri build
+```
+
+### Vite warns about Node.js version
+
+If you see a message like “Vite requires Node.js version 20.19+ or 22.12+”, upgrade Node to one of those versions.
+
+## Signing & notarization (Release builds)
+
+Unsigned local/CI builds are expected to trigger OS warnings:
+
+- macOS: Gatekeeper may warn, and distributing outside your machine typically requires Developer ID signing plus notarization.
+- Windows: SmartScreen warnings are common without Authenticode signing.
+
+### GitHub Release workflow produces unsigned artifacts
+
+This repo includes a release workflow at `.github/workflows/release-tauri.yml`. It builds by default, but signing is opt-in via GitHub Actions secrets.
+
+Fix (macOS signing + notarization):
+
+- Create/export a Developer ID Application certificate as a `.p12` and base64-encode it.
+- Configure these secrets in your GitHub repo:
+  - `APPLE_CERTIFICATE` (base64-encoded `.p12`)
+  - `APPLE_CERTIFICATE_PASSWORD`
+  - `APPLE_SIGNING_IDENTITY` (example: `Developer ID Application: Your Name (TEAMID)`)
+  - `APPLE_ID`
+  - `APPLE_PASSWORD` (Apple ID app-specific password)
+  - `APPLE_TEAM_ID`
+
+Fix (Windows code signing):
+
+- Export your Authenticode certificate as a `.pfx` and base64-encode it.
+- Configure these secrets in your GitHub repo:
+  - `WINDOWS_CERTIFICATE` (base64-encoded `.pfx`)
+  - `WINDOWS_CERTIFICATE_PASSWORD`
+
+Notes:
+
+- The exact variables are documented inline in `.github/workflows/release-tauri.yml`.
+- If you enable notarization, the CI build will take longer due to upload/wait steps.

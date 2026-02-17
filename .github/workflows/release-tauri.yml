@@ -1,0 +1,52 @@
+name: Release (Signed)
+
+on:
+  # Create a GitHub Release (recommended), or push a tag like v0.1.18.
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build-and-upload:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Vite 7 requires Node 20.19+ or 22.12+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      # Tauri has an official action that can build and attach artifacts to the GitHub Release.
+      # Fill in signing secrets later if you want Gatekeeper-friendly distribution.
+      - name: Tauri build (unsigned by default)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # macOS code signing + notarization (optional)
+          # APPLE_CERTIFICATE: base64-encoded .p12
+          # APPLE_CERTIFICATE_PASSWORD: password for the .p12
+          # APPLE_SIGNING_IDENTITY: "Developer ID Application: ..."
+          # APPLE_ID: Apple ID email
+          # APPLE_PASSWORD: app-specific password
+          # APPLE_TEAM_ID: Team ID
+          #
+          # Windows code signing (optional)
+          # WINDOWS_CERTIFICATE: base64-encoded .pfx
+          # WINDOWS_CERTIFICATE_PASSWORD: password for the .pfx
+        with:
+          projectPath: opspad
+          # When triggered by a GitHub Release, this uploads build artifacts to the release automatically.
+          # For workflow_dispatch, artifacts are still produced in the runner workspace.
+

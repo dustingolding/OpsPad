@@ -2,10 +2,11 @@
 
 This file records the current architectural choices for OpsPad. When decisions change, this doc should be updated.
 
-## Windows-First MVP, Cross-Platform Seams
+## Desktop MVP, Cross-Platform (Windows + macOS)
 
-- Windows is the MVP platform.
-- The Rust backend is structured to allow future macOS support (not implemented/packaged yet).
+- Windows is the MVP platform, but macOS is supported for development/builds.
+- Packaging is handled by `tauri build` on both platforms (Windows bundles; macOS `.app` + `.dmg`).
+- Code signing/notarization is not configured by default (see release workflow notes).
 
 ## Terminal UI: xterm.js
 
@@ -61,7 +62,7 @@ Non-goals for MVP:
 
 Decision:
 
-- Store secrets only in the OS keyring via Rust `keyring`.
+- Store secrets only in the OS keyring via Rust `keyring` (Windows Credential Manager, macOS Keychain).
 - Do not store secrets in SQLite.
 
 Rationale:
@@ -71,7 +72,7 @@ Rationale:
 
 Future:
 
-- Add additional vault providers (macOS Keychain; encrypted SQLite vault) behind a `VaultProvider` interface.
+- Add additional vault providers (encrypted vault, org-managed secrets) behind a `VaultProvider` interface.
 
 ## Data: SQLite for metadata
 
