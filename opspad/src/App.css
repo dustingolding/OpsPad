@@ -503,9 +503,8 @@ body {
   align-items: center;
   padding: 10px 10px 8px 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.10);
-  /* Keep the center column from growing when tabs overflow; scroll instead. */
-  overflow-x: auto;
-  overflow-y: hidden;
+  /* Edge-like behavior: tabs shrink to fit as more are opened (no scroll by default). */
+  overflow: hidden;
   min-width: 0;
 }
 
@@ -526,9 +525,10 @@ body {
   cursor: pointer;
   position: relative;
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
-  /* Allow many tabs without forcing the whole app grid wider than the window. */
-  flex: 0 0 auto;
-  max-width: 200px;
+  /* Tabs shrink as they get crowded, similar to Edge. */
+  flex: 1 1 0;
+  min-width: 92px;
+  max-width: 240px;
 }
 
 .tab:hover {
@@ -604,7 +604,8 @@ body {
 
 .tabTitle {
   font-weight: 650;
-  max-width: 240px;
+  flex: 1 1 auto;
+  max-width: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

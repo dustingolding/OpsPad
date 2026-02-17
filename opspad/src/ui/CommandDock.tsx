@@ -27,7 +27,7 @@ import {
 import { ContextMenu, type ContextMenuItem } from "./ContextMenu";
 import { SelectMenu } from "./SelectMenu";
 
-type Mode = "view" | "new" | "edit" | "editRunbook" | "params";
+type Mode = "view" | "new" | "edit" | "editRunbook" | "params" | "confirmDelete";
 type ParamAction = "paste" | "run";
 type DockTab = "commands" | "history";
 
@@ -91,6 +91,7 @@ export function CommandDock({ activeEnvironmentTag }: { activeEnvironmentTag: st
     command: string;
     requiresConfirm: boolean;
   }>({ title: "", command: "", requiresConfirm: false });
+  const [deleteTarget, setDeleteTarget] = useState<DockCommand | null>(null);
 
   const [paramTarget, setParamTarget] = useState<{
     cmd: DockCommand;
@@ -249,15 +250,25 @@ export function CommandDock({ activeEnvironmentTag }: { activeEnvironmentTag: st
     }
   };
 
-  const deleteCmd = async (cmd: DockCommand) => {
-    const ok = window.confirm(`Delete "${cmd.title}"?`);
-    if (!ok) return;
+  const deleteCmd = (cmd: DockCommand) => {
     setError(null);
+    setDeleteTarget(cmd);
+    setMode("confirmDelete");
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setError(null);
+    setSaving(true);
     try {
-      await dockCommandsDelete(cmd.id);
+      await dockCommandsDelete(deleteTarget.id);
       await refresh();
+      setDeleteTarget(null);
+      setMode("view");
     } catch (e) {
       setError(String(e));
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -545,6 +556,8 @@ export function CommandDock({ activeEnvironmentTag }: { activeEnvironmentTag: st
               <div className="panelTitle">
                 {mode === "params"
                   ? "Fill parameters"
+                  : mode === "confirmDelete"
+                    ? "Delete command"
                   : mode === "editRunbook"
                     ? "Edit runbook"
                     : mode === "edit"
@@ -556,7 +569,16 @@ export function CommandDock({ activeEnvironmentTag }: { activeEnvironmentTag: st
               </button>
             </div>
             <div className="panelBody">
-              {mode === "params" && paramTarget ? (
+              {mode === "confirmDelete" ? (
+                <>
+                  <div className="hint" style={{ marginTop: 0 }}>
+                    {deleteTarget ? `Delete "${deleteTarget.title}"?` : "Delete this command?"}
+                  </div>
+                  <div className="hint">
+                    This removes it from CommandDock. (History entries are separate.)
+                  </div>
+                </>
+              ) : mode === "params" && paramTarget ? (
                 <>
                   <div className="hint" style={{ marginTop: 0 }}>
                     {paramTarget.cmd.title}
@@ -674,11 +696,17 @@ export function CommandDock({ activeEnvironmentTag }: { activeEnvironmentTag: st
                           setParamTarget(null);
                           setMode("view");
                         })()
+                      : mode === "confirmDelete"
+                        ? confirmDelete()
                       : mode === "editRunbook"
                         ? saveRunbook()
                         : saveDraft())}
                 >
-                  {saving ? "Saving..." : "Save"}
+                  {saving
+                    ? "Working..."
+                    : mode === "confirmDelete"
+                      ? "Delete"
+                      : "Save"}
                 </button>
               </div>
             </div>
