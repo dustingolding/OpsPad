@@ -15,7 +15,7 @@ This repo is Windows MVP today, but builds and packaging are supported on macOS 
 - `opspad/`: the actual application project (Tauri 2).
 - `BUILD.md`: build/implementation notes and guardrails.
 
-## What’s Implemented Today
+## What's Implemented Today
 
 - Terminal tabs are real sessions (local + SSH), and are closeable.
 - Local terminal:
@@ -36,8 +36,8 @@ This repo is Windows MVP today, but builds and packaging are supported on macOS 
   - Paste/Run targets the active terminal tab
   - Parameterized commands: `{name}` placeholders prompt for values before Paste/Run
   - Guardrail: if active context is `PROD`, OpsPad asks for confirmation before running commands
- - Tauri IPC:
-   - Locked down to only needed permissions (core event listen + `opspad-default`)
+- Tauri IPC:
+  - Locked down to only needed permissions (core event listen + `opspad-default`)
 
 ## Documentation Policy (Locked In)
 
@@ -68,7 +68,8 @@ Install deps:
 
 ```powershell
 cd .\\opspad
-corepack pnpm install
+corepack enable
+pnpm i
 ```
 
 Install deps (macOS):
@@ -137,9 +138,25 @@ This repo builds on GitHub Actions for both Windows and macOS:
 - Release build: `.github/workflows/release-tauri.yml`
   - Intended for signed/notarized release artifacts (signing secrets not configured by default)
 
+## macOS Build (Future Support)
+
+OpsPad is being kept portable for future macOS support, but macOS bundles must be built on macOS (you cannot build a `.app`/`.dmg` from Windows).
+
+On a Mac:
+
+```bash
+cd opspad
+corepack enable
+pnpm i
+pnpm tauri build
+```
+
+Artifacts will be under `opspad/src-tauri/target/release/bundle/` (for example, a `.app` and possibly a `.dmg` depending on bundle targets).
+
 ## User Docs
 
 - `docs/USER_GUIDE.md`
 - `docs/TROUBLESHOOTING.md`
 - `docs/SECURITY.md`
 - `docs/DECISIONS.md`
+

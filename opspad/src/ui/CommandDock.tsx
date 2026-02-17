@@ -149,8 +149,26 @@ export function CommandDock({ activeEnvironmentTag }: { activeEnvironmentTag: st
     return () => window.removeEventListener("opspad-history-updated", onUpdated as EventListener);
   }, [dockTab]);
 
-  const paste = (text: string) => {
-    window.dispatchEvent(new CustomEvent("opspad-terminal-paste", { detail: text }));
+  const paste = (
+    text: string,
+    opts?: {
+      origin?: "commanddock" | "history";
+      dockCommandId?: string;
+      dockCommandTitle?: string;
+      dockCommandTemplate?: string;
+    },
+  ) => {
+    window.dispatchEvent(
+      new CustomEvent("opspad-terminal-paste", {
+        detail: {
+          text,
+          origin: opts?.origin,
+          dockCommandId: opts?.dockCommandId,
+          dockCommandTitle: opts?.dockCommandTitle,
+          dockCommandTemplate: opts?.dockCommandTemplate,
+        },
+      }),
+    );
   };
 
   const run = (cmd: DockCommand) => {
@@ -183,7 +201,12 @@ export function CommandDock({ activeEnvironmentTag }: { activeEnvironmentTag: st
     const params = extractParams(cmd.command);
     if (params.length === 0) {
       if (action === "paste") {
-        paste(cmd.command);
+        paste(cmd.command, {
+          origin: "commanddock",
+          dockCommandId: cmd.id,
+          dockCommandTitle: cmd.title,
+          dockCommandTemplate: cmd.command,
+        });
         setPulseCmdId(cmd.id);
         window.dispatchEvent(new CustomEvent("opspad-terminal-flash"));
       }
@@ -486,7 +509,11 @@ export function CommandDock({ activeEnvironmentTag }: { activeEnvironmentTag: st
                     <div className="dockRowCmd">{h.commandText}</div>
                   </div>
                   <div className="dockRowActions">
-                    <button className="miniButton miniButtonGhost" type="button" onClick={() => paste(h.commandText)}>
+                    <button
+                      className="miniButton miniButtonGhost"
+                      type="button"
+                      onClick={() => paste(h.commandText, { origin: "history" })}
+                    >
                       Paste
                     </button>
                     <button
@@ -689,9 +716,12 @@ export function CommandDock({ activeEnvironmentTag }: { activeEnvironmentTag: st
                               }),
                             );
                           } else {
-                            window.dispatchEvent(
-                              new CustomEvent("opspad-terminal-paste", { detail: finalCmd }),
-                            );
+                            paste(finalCmd, {
+                              origin: "commanddock",
+                              dockCommandId: paramTarget.cmd.id,
+                              dockCommandTitle: paramTarget.cmd.title,
+                              dockCommandTemplate: paramTarget.cmd.command,
+                            });
                           }
                           setParamTarget(null);
                           setMode("view");

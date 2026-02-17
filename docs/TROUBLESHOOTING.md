@@ -2,7 +2,7 @@
 
 ## App issues
 
-### Terminal won’t accept typing / cursor doesn’t move
+### Terminal won't accept typing / cursor doesn't move
 
 Symptoms:
 
@@ -15,10 +15,10 @@ Checks:
 
 Fixes:
 
-- Ensure you’re running a current installer build (MSI) and not an older one.
+- Ensure you're running a current installer build (MSI) and not an older one.
 - If developing, run via `opspad/dev.ps1` to ensure MSVC + PATH are set.
 
-### SSH won’t connect
+### SSH won't connect
 
 Checks:
 
@@ -42,9 +42,9 @@ If OpsPad reports that it cannot find `ssh`:
 - Install the Windows OpenSSH client, or
 - Set the environment variable `OPSPAD_SSH` to the full path of `ssh.exe`.
 
-### SSH session shows “Connection to X closed” and stays there
+### SSH session shows "Connection to X closed" and stays there
 
-This can happen if the SSH process exited but the UI didn’t switch tabs.
+This can happen if the SSH process exited but the UI didn't switch tabs.
 
 Fixes:
 
@@ -92,19 +92,23 @@ Fix:
 
 - Ensure `opspad/src-tauri/icons/icon.ico` exists (required for Windows resource generation).
 
-### MSI installs but doesn’t update
+### MSI installs but doesn't update
 
 Fix:
 
-- MSI upgrades are version-based. Ensure the app version was bumped and you’re installing the newest MSI.
+- MSI upgrades are version-based. Ensure the app version was bumped and you're installing the newest MSI.
 
 ## Build / packaging issues (macOS)
 
+### You can't build macOS bundles from Windows
+
+Tauri macOS bundles (`.app` / `.dmg`) must be built on macOS.
+
 ### `corepack` fails with EACCES when enabling pnpm
 
-Some macOS setups won’t allow creating shims under `/usr/local/bin` without elevated permissions.
+Some macOS setups won't allow creating shims under `/usr/local/bin` without elevated permissions.
 
-Fix (recommended): use the repo scripts or run pnpm via `npx`:
+Fix (recommended): use the repo scripts:
 
 ```bash
 cd ./opspad
@@ -112,19 +116,19 @@ cd ./opspad
 ./build.sh
 ```
 
-Or:
+Or run pnpm via npx:
 
 ```bash
 cd ./opspad
-npx -y pnpm@9.15.4 install
-npx -y pnpm@9.15.4 tauri build
+npx -y pnpm@10 install
+npx -y pnpm@10 tauri build
 ```
 
 ### Vite warns about Node.js version
 
-If you see a message like “Vite requires Node.js version 20.19+ or 22.12+”, upgrade Node to one of those versions.
+If you see a message like "Vite requires Node.js version 20.19+ or 22.12+", upgrade Node to one of those versions.
 
-## Signing & notarization (Release builds)
+## Signing & notarization (release builds)
 
 Unsigned local/CI builds are expected to trigger OS warnings:
 

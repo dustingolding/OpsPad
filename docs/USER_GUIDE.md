@@ -73,12 +73,12 @@ The filter supports free-text search, plus simple `key:value` tokens:
 
 ### Reorder Hosts
 
-- Drag the handle (`⋮⋮`) to reorder hosts.
+- Drag host rows to reorder hosts.
 - Note: reordering is disabled while the filter/search box is non-empty.
 
 ### Minimize/Expand Hosts Pane
 
-- Click `<` / `>` in the Hosts panel header to minimize/expand the pane.
+- Click the hamburger icon in the Hosts panel header to minimize/expand the pane.
 
 ## Credentials (OS Keyring)
 
@@ -120,18 +120,22 @@ CommandDock stores a runbook (markdown) and reusable commands.
 
 ### Reorder Commands
 
-- Drag the handle (`⋮⋮`) to reorder commands.
+- Drag command rows to reorder commands.
 - Note: reordering is disabled while the search box is non-empty.
 
 ### History
 
-CommandDock includes a History view that shows commands previously executed via CommandDock "Run".
+CommandDock includes a History view that shows commands sent via CommandDock (Run and Paste).
 
 - Use `History` in the CommandDock header to switch views.
 - From history you can:
   - `Paste` a previous command into the active terminal
   - `Save` it into CommandDock commands
   - `x` to delete an entry (or `Clear` to wipe history)
+
+Notes:
+
+- Typed keystrokes in the terminal are not recorded in History.
 
 ### Parameterized Commands
 
@@ -143,3 +147,4 @@ If a command contains `{placeholders}` (example: `kubectl get pods -n {ns}`), Op
 ### Production Guardrail
 
 If the active context badge shows `PROD`, OpsPad will ask for confirmation before running commands (even if a command is not marked as dangerous).
+

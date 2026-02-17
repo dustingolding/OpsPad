@@ -24,7 +24,16 @@ type TerminalDataEvent = {
 
 declare global {
   interface WindowEventMap {
-    "opspad-terminal-paste": CustomEvent<string>;
+    "opspad-terminal-paste": CustomEvent<
+      | string
+      | {
+          text: string;
+          origin?: string;
+          dockCommandId?: string;
+          dockCommandTitle?: string;
+          dockCommandTemplate?: string;
+        }
+    >;
     "opspad-terminal-run": CustomEvent<string | { text: string; dockCommandId?: string; dockCommandTitle?: string; dockCommandTemplate?: string }>;
     "opspad-terminal-activity": CustomEvent<void>;
     "opspad-terminal-flash": CustomEvent<void>;
@@ -305,11 +314,39 @@ export function TerminalPane({
         if (!activeRef.current) return;
         const sid = sessionIdRef.current;
         if (!sid) return;
-        const text = ev.detail ?? "";
+        const d = ev.detail as unknown;
+        const payload =
+          typeof d === "string"
+            ? { text: d }
+            : d && typeof d === "object" && "text" in (d as Record<string, unknown>)
+              ? (d as {
+                  text: string;
+                  origin?: string;
+                  dockCommandId?: string;
+                  dockCommandTitle?: string;
+                  dockCommandTemplate?: string;
+                })
+              : { text: "" };
+
+        const text = payload.text ?? "";
         if (!text) return;
-        void terminalWrite(sid, text).catch((e) => {
-          termRef.current?.writeln(`\r\n[opspad] paste failed: ${String(e)}\r\n`);
-        });
+
+        void terminalWrite(
+          sid,
+          text,
+          payload.origin,
+          {
+            dockCommandId: payload.dockCommandId,
+            dockCommandTitle: payload.dockCommandTitle,
+            dockCommandTemplate: payload.dockCommandTemplate,
+          },
+        )
+          .then(() => {
+            if (payload.origin === "commanddock") window.dispatchEvent(new CustomEvent("opspad-history-updated"));
+          })
+          .catch((e) => {
+            termRef.current?.writeln(`\r\n[opspad] paste failed: ${String(e)}\r\n`);
+          });
       };
 
       const onRun = (
