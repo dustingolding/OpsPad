@@ -61,6 +61,23 @@ impl TerminalSessionManager for PortablePtySessionManager {
 
         let mut cmd = CommandBuilder::new(spec.program);
         cmd.args(spec.args);
+        // GUI apps often run without a TERM. Remote shells use TERM for `clear`, colors, etc.
+        // Only set a default if the parent environment doesn't already provide one.
+        match std::env::var("TERM") {
+            Ok(v) if !v.trim().is_empty() => {}
+            _ => {
+                cmd.env("TERM", "xterm-256color");
+            }
+        }
+        // Helpful hint for programs that support truecolor.
+        match std::env::var("COLORTERM") {
+            Ok(v) if !v.trim().is_empty() => {}
+            _ => {
+                cmd.env("COLORTERM", "truecolor");
+            }
+        }
+        // Stable identifier (best-effort).
+        cmd.env("TERM_PROGRAM", "OpsPad");
 
         let mut child = pair
             .slave

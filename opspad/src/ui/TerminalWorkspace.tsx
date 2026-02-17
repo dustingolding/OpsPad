@@ -353,15 +353,18 @@ export function TerminalWorkspace({
     );
   }
 
-  const sessionLabel =
-    activeTab.kind === "ssh" && activeTab.ssh
-      ? `SSH ${activeTab.ssh.username}@${activeTab.ssh.hostname}`
-      : activeTab.title;
-  const environmentTag = activeTab.kind === "ssh" ? activeTab.ssh?.environmentTag ?? "UNKNOWN" : "LOCAL";
-  const connectionMeta =
-    activeTab.kind === "ssh" && activeTab.ssh
-      ? `Connected to: ${activeTab.ssh.label}  ·  ${activeTab.ssh.environmentTag}  ·  ${activeTab.ssh.hostname}:${activeTab.ssh.port}`
-      : null;
+  const panePropsFor = (t: TermTab) => {
+    const sessionLabel =
+      t.kind === "ssh" && t.ssh
+        ? `SSH ${t.ssh.username}@${t.ssh.hostname}`
+        : t.title;
+    const environmentTag = t.kind === "ssh" ? t.ssh?.environmentTag ?? "UNKNOWN" : "LOCAL";
+    const connectionMeta =
+      t.kind === "ssh" && t.ssh
+        ? `Connected to: ${t.ssh.label}  ·  ${t.ssh.environmentTag}  ·  ${t.ssh.hostname}:${t.ssh.port}`
+        : null;
+    return { sessionLabel, environmentTag, connectionMeta };
+  };
 
   return (
     <section className="panel panelFlush">
@@ -392,14 +395,23 @@ export function TerminalWorkspace({
       </div>
 
       <div className="terminalFrame">
-        <TerminalPane
-          sessionId={activeTab.sessionId}
-          statusText={activeTab.statusText}
-          sessionLabel={sessionLabel}
-          themeColor={null}
-          environmentTag={environmentTag}
-          connectionMeta={connectionMeta}
-        />
+        {tabs.map((t) => {
+          const { sessionLabel, environmentTag, connectionMeta } = panePropsFor(t);
+          const isActive = t.id === activeTab.id;
+          return (
+            <div key={t.id} style={{ display: isActive ? "block" : "none", height: "100%" }}>
+              <TerminalPane
+                active={isActive}
+                sessionId={t.sessionId}
+                statusText={t.statusText}
+                sessionLabel={sessionLabel}
+                themeColor={null}
+                environmentTag={environmentTag}
+                connectionMeta={connectionMeta}
+              />
+            </div>
+          );
+        })}
       </div>
     </section>
   );

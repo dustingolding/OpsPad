@@ -277,7 +277,8 @@ export function CommandDock({ activeEnvironmentTag }: { activeEnvironmentTag: st
 
   const showModal = mode !== "view";
 
-  const canReorder = search.trim().length === 0 && mode === "view";
+  // In delete/manage mode we disable drag listeners so clicks on the delete button are reliable.
+  const canReorder = search.trim().length === 0 && mode === "view" && !manageMode;
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   const ctxItems: ContextMenuItem[] = useMemo(() => {

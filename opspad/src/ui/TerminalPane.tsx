@@ -14,6 +14,7 @@ type Props = {
   themeColor?: string | null;
   environmentTag?: string | null;
   connectionMeta?: string | null;
+  active?: boolean;
 };
 
 type TerminalDataEvent = {
@@ -30,7 +31,15 @@ declare global {
   }
 }
 
-export function TerminalPane({ sessionId, sessionLabel, statusText, themeColor, environmentTag, connectionMeta }: Props) {
+export function TerminalPane({
+  sessionId,
+  sessionLabel,
+  statusText,
+  themeColor,
+  environmentTag,
+  connectionMeta,
+  active = false,
+}: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const mountRef = useRef<HTMLDivElement | null>(null);
   const termRef = useRef<Terminal | null>(null);
@@ -46,6 +55,10 @@ export function TerminalPane({ sessionId, sessionLabel, statusText, themeColor, 
   const [ready, setReady] = useState(false);
   const [flash, setFlash] = useState(false);
   const [banner, setBanner] = useState<{ text: string; kind: "ok" | "warn" } | null>(null);
+  const activeRef = useRef<boolean>(false);
+  useEffect(() => {
+    activeRef.current = !!active;
+  }, [active]);
 
   useLayoutEffect(() => {
     if (!hostRef.current || !mountRef.current) return;
@@ -222,21 +235,18 @@ export function TerminalPane({ sessionId, sessionLabel, statusText, themeColor, 
   }, [themeColor]);
 
   useEffect(() => {
-    if (!ready) return;
-
+    // Always listen for data events so inactive tabs still accumulate scrollback.
     let unlisten: (() => void) | null = null;
     (async () => {
-      // Listen once for all terminal data and route it to the active session,
-      // buffering anything that arrives early.
       unlisten = await listen<TerminalDataEvent>("terminal:data", (ev) => {
         const sid = ev.payload.sessionId;
-        const activeSid = sessionIdRef.current;
-        if (activeSid && sid === activeSid) {
-          termRef.current?.write(ev.payload.data);
-          return;
+        const mySid = sessionIdRef.current;
+        if (!mySid || sid !== mySid) return;
+        if (ready) termRef.current?.write(ev.payload.data);
+        else {
+          const prev = pendingBySessionRef.current.get(sid) ?? "";
+          pendingBySessionRef.current.set(sid, prev + ev.payload.data);
         }
-        const prev = pendingBySessionRef.current.get(sid) ?? "";
-        pendingBySessionRef.current.set(sid, prev + ev.payload.data);
       });
     })().catch(() => {});
 
@@ -264,14 +274,13 @@ export function TerminalPane({ sessionId, sessionLabel, statusText, themeColor, 
       }
     }
 
-    // Clear the visible buffer and show a small header.
+    // Only add the small header once per mount, not on every tab switch.
+    // Each tab has its own TerminalPane instance when rendered from TerminalWorkspace.
     const term = termRef.current;
-    if (term) {
-      term.write("\x1bc");
+    if (term && prev === null && sessionId) {
       term.writeln("OpsPad");
       term.writeln(`Session: ${sessionLabel}`);
       term.writeln("");
-      term.focus();
     }
 
     if (!sessionId) {
@@ -283,6 +292,7 @@ export function TerminalPane({ sessionId, sessionLabel, statusText, themeColor, 
 
     (async () => {
       const disposable = termRef.current?.onData((data) => {
+        if (!activeRef.current) return;
         const sid = sessionIdRef.current;
         if (!sid) return;
         window.dispatchEvent(new CustomEvent("opspad-terminal-activity"));
@@ -292,6 +302,7 @@ export function TerminalPane({ sessionId, sessionLabel, statusText, themeColor, 
       });
 
       const onPaste = (ev: CustomEvent<string>) => {
+        if (!activeRef.current) return;
         const sid = sessionIdRef.current;
         if (!sid) return;
         const text = ev.detail ?? "";
@@ -312,6 +323,7 @@ export function TerminalPane({ sessionId, sessionLabel, statusText, themeColor, 
             }
         >,
       ) => {
+        if (!activeRef.current) return;
         const sid = sessionIdRef.current;
         if (!sid) return;
         const d = ev.detail as unknown;
@@ -378,6 +390,23 @@ export function TerminalPane({ sessionId, sessionLabel, statusText, themeColor, 
       if (cleanupSession) cleanupSession();
     };
   }, [ready, sessionId, sessionLabel, statusText]);
+
+  // When a tab becomes active, fit + focus and sync PTY size to avoid weird layouts.
+  useEffect(() => {
+    if (!ready) return;
+    if (!active) return;
+    try {
+      fitRef.current?.fit();
+    } catch {
+      // ignore
+    }
+    termRef.current?.focus();
+    const sid = sessionIdRef.current;
+    const t = termRef.current;
+    if (sid && t && t.cols > 1 && t.rows > 1) {
+      void terminalResize(sid, t.cols, t.rows).catch(() => {});
+    }
+  }, [active, ready]);
 
   useEffect(() => {
     const onFlash = () => {
