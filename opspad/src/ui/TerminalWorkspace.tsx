@@ -77,6 +77,7 @@ export function TerminalWorkspace({
 }) {
   const [tabs, setTabs] = useState<TermTab[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const didBootstrapRef = useRef(false);
 
   const tabsRef = useRef<TermTab[]>([]);
   const activeIdRef = useRef<string | null>(null);
@@ -288,11 +289,17 @@ export function TerminalWorkspace({
   };
 
   // Ensure there's always at least one local tab.
+  // In React StrictMode (dev), effects can run twice; guard against opening two tabs.
   useEffect(() => {
-    if (tabs.length > 0) return;
+    if (didBootstrapRef.current) return;
+    if (tabsRef.current.length > 0) {
+      didBootstrapRef.current = true;
+      return;
+    }
+    didBootstrapRef.current = true;
     void openLocalTab();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tabs.length]);
+  }, []);
 
   // Host click connects/activates a tab (does not reconnect on tab switch).
   useEffect(() => {

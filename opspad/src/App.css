@@ -145,6 +145,8 @@ body {
 .centerPane,
 .rightPane {
   min-height: 0;
+  /* Prevent grid columns from expanding due to long/overflowing content (tabs, long labels, etc). */
+  min-width: 0;
 }
 
 .leftPane .panelBody {
@@ -162,6 +164,7 @@ body {
   grid-template-rows: auto 1fr;
   min-height: 0;
   position: relative;
+  min-width: 0;
 }
 
 .panelFlush {
@@ -226,6 +229,8 @@ body {
   padding: 12px;
   overflow: auto;
   padding-bottom: 64px;
+  /* Reserve space for scrollbars so floating action buttons aren't covered (notably on macOS). */
+  scrollbar-gutter: stable;
 }
 
 .field {
@@ -498,6 +503,10 @@ body {
   align-items: center;
   padding: 10px 10px 8px 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  /* Keep the center column from growing when tabs overflow; scroll instead. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-width: 0;
 }
 
 .tabBarSpacer {
@@ -517,6 +526,9 @@ body {
   cursor: pointer;
   position: relative;
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  /* Allow many tabs without forcing the whole app grid wider than the window. */
+  flex: 0 0 auto;
+  max-width: 200px;
 }
 
 .tab:hover {
@@ -596,6 +608,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .tabClose {
@@ -970,7 +983,8 @@ body {
 
 .panelFab {
   position: absolute;
-  right: 12px;
+  /* Nudge away from overlay scrollbars so both + and - remain clickable. */
+  right: 20px;
   bottom: 12px;
   display: flex;
   gap: 8px;
