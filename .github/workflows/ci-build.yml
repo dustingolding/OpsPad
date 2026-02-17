@@ -59,7 +59,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Tauri bundles
-        run: pnpm tauri build
+        run: pnpm exec tauri build
 
       - name: Upload bundles (Windows)
         if: runner.os == 'Windows'
