@@ -317,8 +317,8 @@ export function CommandDock({ activeEnvironmentTag }: { activeEnvironmentTag: st
           e.preventDefault();
           setCtxMenu({ open: true, x: e.clientX, y: e.clientY, cmd: c });
         }}
-        {...attributes}
-        {...listeners}
+        {...(canReorder ? attributes : {})}
+        {...(canReorder ? listeners : {})}
         title={canReorder ? "Drag to reorder" : undefined}
       >
         <div className="dockRowText">
